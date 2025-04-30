@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google_Drive_clone", "Google_Drive_clone.csproj", "{97397F12-689F-A838-13AF-7567E3C75261}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{97397F12-689F-A838-13AF-7567E3C75261}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97397F12-689F-A838-13AF-7567E3C75261}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97397F12-689F-A838-13AF-7567E3C75261}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97397F12-689F-A838-13AF-7567E3C75261}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27F21B16-B642-42E0-8F85-0AE6457CA2AE}
+	EndGlobalSection
+EndGlobal
