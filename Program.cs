@@ -1,3 +1,6 @@
+using Google_Drive_clone.Data.Repositories;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 namespace Google_Drive_clone;
@@ -8,11 +11,18 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        );
         builder.Services.AddAuthorization();
+        builder
+            .Services.AddIdentityApiEndpoints<IdentityUser>()
+            .AddEntityFrameworkStores<AppDbContext>();
 
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+        builder.Services.AddScoped<FolderRepository>();
+        builder.Services.AddScoped<IFolderService, FolderService>();
+        builder.Services.AddControllers();
 
         var app = builder.Build();
 
@@ -22,10 +32,13 @@ public class Program
             app.MapOpenApi();
             app.MapScalarApiReference();
         }
+        app.MapIdentityApi<IdentityUser>();
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
+        app.MapControllers();
         app.Run();
     }
 }
