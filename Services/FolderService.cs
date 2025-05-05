@@ -9,7 +9,7 @@ public class FolderService : IFolderService
         _folderRepository = folderRepository;
     }
 
-    public async Task<FolderCreateResponse?> CreateFolderAsync(FolderCreateRequest request)
+    public async Task<string?> CreateFolderAsync(FolderCreateRequest request)
     {
         FolderEntity folderEntity = new FolderEntity
         {
@@ -22,7 +22,14 @@ public class FolderService : IFolderService
         {
             return null;
         }
-        
-        return new FolderCreateResponse { FolderPath = folderEntity.Path };
+
+        return folderEntity.Path;
     }
+
+    public async Task<string> DeleteFolderAsync(string id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<string>
 }

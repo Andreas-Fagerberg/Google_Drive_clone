@@ -14,7 +14,7 @@ public class FoldersController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateFolder(FolderCreateRequest folder)
+    public async Task<IActionResult> Create(FolderCreateRequest folder)
     {
         var response = await _folderService.CreateFolderAsync(folder);
 
@@ -23,6 +23,20 @@ public class FoldersController : ControllerBase
             return BadRequest("Failed to create folder.");
         }
 
-        return Ok(response);
+        return Ok("Folder successfully created at: " + response);
+    }
+
+    [Authorize]
+    [HttpDelete]
+    public async Task<IActionResult> Delete([FromBody] string id)
+    {
+        var response = await _folderService.DeleteFolderAsync(id);
+
+        if (response == null)
+        {
+            return BadRequest("Failed to delete folder.");
+        }
+
+        return Ok("Folder successfully deleted at: " + response);
     }
 }
