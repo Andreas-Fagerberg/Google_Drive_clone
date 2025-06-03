@@ -29,6 +29,10 @@ public class FoldersController : ControllerBase
 
             return CreatedAtAction(nameof(Get), new { id = response.Id }, response);
         }
+        catch (NameAlreadyExistsException ex)
+        {
+            return BadRequest();
+        }
         catch (Exception ex)
         {
             return BadRequest();
