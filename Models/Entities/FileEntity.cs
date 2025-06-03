@@ -15,6 +15,8 @@ public class FileEntity
     [Required]
     public required byte[] Content { get; set; }
     public DateTime UploadedAt { get; set; }
+
+    // Navigation props
     public int? FolderId { get; set; }
     public FolderEntity? Folder { get; set; }
 }
