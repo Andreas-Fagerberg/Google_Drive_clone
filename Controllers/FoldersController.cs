@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,14 +17,32 @@ public class FoldersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(FolderCreateRequest folder)
     {
-        var response = await _folderService.CreateFolderAsync(folder);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (response == null)
+        if (userId == null)
         {
-            return BadRequest("Failed to create folder.");
+            throw new UnauthorizedAccessException();
         }
+        try
+        {
+            var response = await _folderService.CreateFolderAsync(folder, userId);
 
-        return Ok("Folder successfully created at: " + response);
+            return CreatedAtAction(nameof(Get), new { id = response.Id }, response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest();
+        }
+    }
+
+    [Authorize]
+    [HttpDelete]
+    public async Task<IActionResult> Get(int id)
+    {
+        throw new NotImplementedException();
+        // var response = await _folderService.GetFolderAsync(id);
+
+        // return Ok(response);
     }
 
     [Authorize]
