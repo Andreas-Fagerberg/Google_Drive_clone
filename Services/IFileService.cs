@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+using Google_Drive_clone.Models.Entities;
 
 public interface IFileService
 {
-    public Task<FileUploadResponse> UploadFileAsync();
+    public Task<FileEntity> UploadFileAsync(FileUploadRequest request);
 }
