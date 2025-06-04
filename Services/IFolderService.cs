@@ -1,5 +1,5 @@
 public interface IFolderService
 {
-    public Task<string> CreateFolderAsync(FolderCreateRequest request);
-    public Task<string> DeleteFolderAsync(string id);
+    public Task<FolderCreateResponse> CreateFolderAsync(FolderCreateRequest request, string userId);
+    public Task<string> DeleteFolderAsync(int id);
 }

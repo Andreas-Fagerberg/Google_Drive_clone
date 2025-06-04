@@ -17,7 +17,8 @@ public class Program
         builder.Services.AddAuthorization();
         builder
             .Services.AddIdentityApiEndpoints<IdentityUser>()
-            .AddEntityFrameworkStores<AppDbContext>();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
         builder.Services.AddOpenApi();
         builder.Services.AddScoped<FolderRepository>();

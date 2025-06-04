@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Google_Drive_clone.Data.Repositories;
 
 public class FolderRepository
@@ -9,15 +11,30 @@ public class FolderRepository
         _context = context;
     }
 
-    public async Task<int> AddFolderToDbAsync(FolderEntity folderEntity)
+    public async Task<FolderEntity> AddFolderAsync(FolderEntity folderEntity)
     {
         await _context.AddAsync(folderEntity);
+        await _context.SaveChangesAsync();
+        return folderEntity;
+    }
 
-        FolderCreateResponse folderCreateResponse = new FolderCreateResponse
-        {
-            FolderPath = folderEntity.Path,
-        };
+    public async Task<FolderEntity?> GetFolderAsync(int folderId)
+    {
+        return await _context.Folders.FirstOrDefaultAsync(f => f.Id == folderId);
+    }
 
-        return await _context.SaveChangesAsync();
+    public async Task<FolderEntity?> GetFolderByNameAsync(string folderName, string userId)
+    {
+        return await _context.Folders.FirstOrDefaultAsync(f =>
+            f.FolderName == folderName && f.UserId == userId
+        );
+    }
+
+    public async Task<List<FolderEntity>> GetAllUserFoldersAsync(string userId)
+    {
+        return await _context
+            .Folders.Where(f => f.UserId == userId)
+            .OrderBy(f => f.FolderName)
+            .ToListAsync();
     }
 }
