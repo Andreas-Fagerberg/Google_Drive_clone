@@ -75,13 +75,20 @@ public class FolderService : IFolderService
         }
     }
 
+    /// <summary>
+    /// Checks if a duplicate folder already exists with the given folder name and user id.
+    /// </summary>
+    /// <param name="folderName">The folder name to check for</param>
+    /// <param name="userId">The id of the user to check for</param>
+    /// <returns></returns>
+    /// <exception cref="DuplicateItemException">Thrown if a duplicate folder is found</exception>
     public async Task CheckForDuplicateFolderAsync(string folderName, string userId)
     {
         var existingFolder = await _folderRepository.GetFolderByNameAsync(folderName, userId);
 
         if (existingFolder != null)
         {
-            throw new NameAlreadyExistsException(folderName);
+            throw new DuplicateItemException(folderName);
         }
     }
 
