@@ -27,7 +27,7 @@ public class FoldersController : ControllerBase
 
             return CreatedAtAction(nameof(Get), new { id = response.Id }, response);
         }
-        catch (NameAlreadyExistsException ex)
+        catch (DuplicateItemException ex)
         {
             return BadRequest();
         }
