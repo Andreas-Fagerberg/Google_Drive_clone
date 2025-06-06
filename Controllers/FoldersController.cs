@@ -17,7 +17,7 @@ public class FoldersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(FolderCreateRequest request)
     {
-        string? userId =
+        var userId =
             User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedAccessException();
 
@@ -33,7 +33,7 @@ public class FoldersController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest();
+            return StatusCode(500, "An unexpected error occured while creating the folder.");
         }
     }
 
@@ -41,10 +41,22 @@ public class FoldersController : ControllerBase
     [HttpDelete("id")]
     public async Task<IActionResult> Get(int id)
     {
+        var userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException();
 
-        var response = await _folderService.GetFolderAsync(id);
+        try
+        {
+            var response = await _folderService.GetFolderAsync(id, userId);
 
-        return Ok(response);
+            return Ok(FolderCreateResponse.FromEntity(response));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+        }
+
+        
     }
 
     [Authorize]
