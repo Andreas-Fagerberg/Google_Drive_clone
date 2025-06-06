@@ -41,10 +41,10 @@ public class FoldersController : ControllerBase
     [HttpDelete("id")]
     public async Task<IActionResult> Get(int id)
     {
-        throw new NotImplementedException();
-        // var response = await _folderService.GetFolderAsync(id);
 
-        // return Ok(response);
+        var response = await _folderService.GetFolderAsync(id);
+
+        return Ok(response);
     }
 
     [Authorize]

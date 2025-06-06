@@ -10,49 +10,45 @@ public class FolderService : IFolderService
         _folderRepository = folderRepository;
     }
 
-    public async Task<FolderCreateResponse> CreateFolderAsync(
-        FolderCreateRequest request,
-        string userId
-    )
+    public async Task<FolderEntity> CreateFolderAsync(FolderCreateRequest request, string userId)
     {
         ValidateFolderCreateRequest(request);
         await CheckForDuplicateFolderAsync(request.FolderName, userId);
 
         FolderEntity folderEntity = new FolderEntity
         {
-            UserId = userId,
             FolderName = request.FolderName,
-            CreatedAt = DateTime.UtcNow,
+            UserId = userId,
         };
 
         var response = await _folderRepository.AddFolderAsync(folderEntity);
 
-        return new FolderCreateResponse
-        {
-            Id = response.Id,
-            FolderName = response.FolderName,
-            CreatedAt = response.CreatedAt,
-        };
+        return response;
     }
 
-    public async Task<FolderEntity> GetFolderAsync(int folderId)
+    public async Task<FolderEntity> GetFolderAsync(int folderId, string userId)
     {
         if (folderId <= 0)
         {
             throw new ArgumentException("Folder ID must be a positive number");
         }
 
-        var folder = await _folderRepository.GetFolderAsync(folderId);
+        var response = await _folderRepository.GetFolderAsync(folderId);
 
-        if (folder == null)
+        if (response == null)
         {
-            throw new KeyNotFoundException();
+            throw new FolderNotFoundException(folderId);
         }
 
-        return folder;
+        return response;
     }
 
-    public async Task<string> DeleteFolderAsync(int id)
+    public Task<FolderEntity> UpdateFolderAsync(FolderUpdateRequest request, string userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteFolderAsync(int id, string userId)
     {
         throw new NotImplementedException();
     }
