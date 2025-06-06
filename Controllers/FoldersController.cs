@@ -17,12 +17,8 @@ public class FoldersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(FolderCreateRequest folder)
     {
-        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new UnauthorizedAccessException();
 
-        if (userId == null)
-        {
-            throw new UnauthorizedAccessException();
-        }
         try
         {
             var response = await _folderService.CreateFolderAsync(folder, userId);
@@ -40,13 +36,20 @@ public class FoldersController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete]
+    [HttpDelete("id")]
     public async Task<IActionResult> Get(int id)
     {
         throw new NotImplementedException();
         // var response = await _folderService.GetFolderAsync(id);
 
         // return Ok(response);
+    }
+
+    [Authorize]
+    [HttpPut("id")]
+    public async Task<IActionResult> Update([FromBody] string folderName, int id)
+    { 
+        throw new NotImplementedException();
     }
 
     [Authorize]
