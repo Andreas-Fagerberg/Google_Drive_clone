@@ -30,17 +30,27 @@ public class FolderService : IFolderService
     {
         if (folderId <= 0)
         {
-            throw new ArgumentException("Folder ID must be a positive number");
+            throw new ValidationException("Folder ID must be a positive number");
         }
 
         var response = await _folderRepository.GetFolderAsync(folderId);
 
         if (response == null)
         {
-            throw new FolderNotFoundException(folderId);
+            throw new FolderDataNotFoundException(folderId);
+        }
+
+        if (response.UserId != userId)
+        {
+            throw new UnauthorizedAccessException();
         }
 
         return response;
+    }
+
+    public async Task<FolderEntity> GetAllFoldersAsync(string userId)
+    {
+        
     }
 
     public Task<FolderEntity> UpdateFolderAsync(FolderUpdateRequest request, string userId)

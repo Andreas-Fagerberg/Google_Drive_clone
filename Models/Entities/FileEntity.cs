@@ -10,7 +10,7 @@ public class FileEntity
     public required string FileName { get; set; }
 
     [Required]
-    public required byte[] Content { get; set; }
+    public required byte[] Content { get; set; } = new byte[0];
     public DateTime UploadedAt { get; set; }
 
     // Navigation props

@@ -12,5 +12,5 @@ public class FolderEntity
     [Required]
     public required string UserId { get; set; }
 
-    public ICollection<FileEntity>? Files { get; set; } = new List<FileEntity>();
+    public ICollection<FileEntity> Files { get; set; } = new List<FileEntity>();
 }

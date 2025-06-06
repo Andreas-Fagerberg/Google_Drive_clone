@@ -38,27 +38,67 @@ public class FoldersController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("id")]
-    public async Task<IActionResult> Get(int id)
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var userId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException();
-
         try
         {
-            var response = await _folderService.GetFolderAsync(id, userId);
-
-            return Ok(FolderCreateResponse.FromEntity(response));
+            var userId = UserValidation.ValidateUser(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
+            var response = await _folderService.GetAllFoldersAsync();
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex);
+        }
+        catch (FolderDataNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
         catch (Exception ex)
         {
             return StatusCode(500, "An unexpected error occured while retrieving the folder.");
         }
-
-        
     }
 
+    [Authorize]
+    [HttpGet("id")]
+    public async Task<IActionResult> Get(int id)
+    {
+        try
+        {
+            var userId = UserValidation.ValidateUser(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
+            var response = await _folderService.GetFolderAsync(id, userId);
+
+            return Ok(FolderCreateResponse.FromEntity(response));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex);
+        }
+        catch (FolderDataNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+        }
+    }
+
+    [Authorize]
+    [HttpGet]
     [Authorize]
     [HttpPut("id")]
     public async Task<IActionResult> Update([FromBody] string folderName, int id)
@@ -67,10 +107,10 @@ public class FoldersController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete]
-    public async Task<IActionResult> Delete([FromBody] string id)
+    [HttpDelete("id")]
+    public async Task<IActionResult> Delete(int id)
     {
-        var response = await _folderService.DeleteFolderAsync(id);
+        var response = await _folderService.DeleteFolderAsync(id, userId);
 
         if (response == null)
         {
