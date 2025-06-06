@@ -1,5 +1,3 @@
-using Google_Drive_clone.Models.Entities;
-
 public interface IFileRepository
 {
     public Task<FileEntity> CreateFileAsync(FileEntity fileEntity);

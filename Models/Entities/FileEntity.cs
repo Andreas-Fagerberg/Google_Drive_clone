@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Google_Drive_clone.Models.Entities;
+
 
 public class FileEntity
 {
@@ -10,12 +10,15 @@ public class FileEntity
     public required string FileName { get; set; }
 
     [Required]
+    public required string ContentType { get; set; }
+
+    [Required]
     public required byte[] Content { get; set; } = new byte[0];
     public DateTime UploadedAt { get; set; }
 
-    // Navigation props
-    public int? FolderId { get; set; }
+    [Required]
+    public required int FolderId { get; set; }
 
-    // Navigation Props
+    // Navigation props
     public FolderEntity? Folder { get; set; }
 }

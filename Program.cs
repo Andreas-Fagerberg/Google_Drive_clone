@@ -1,9 +1,6 @@
-using Google_Drive_clone.Data.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-
-namespace Google_Drive_clone;
 
 public class Program
 {

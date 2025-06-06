@@ -1,9 +1,6 @@
-using Google_Drive_clone.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Google_Drive_clone.Data.Repositories;
-
-public class FolderRepository
+public class FolderRepository : IFolderRepository
 {
     private readonly AppDbContext _context;
 
@@ -12,11 +9,11 @@ public class FolderRepository
         _context = context;
     }
 
-    public async Task<FolderEntity> AddFolderAsync(FolderEntity folderEntity)
+    public async Task<FolderEntity> AddFolderAsync(FolderEntity entity)
     {
-        await _context.AddAsync(folderEntity);
+        await _context.AddAsync(entity);
         await _context.SaveChangesAsync();
-        return folderEntity;
+        return entity;
     }
 
     public async Task<FolderEntity?> GetFolderAsync(int folderId)
@@ -34,7 +31,9 @@ public class FolderRepository
                     {
                         Id = file.Id,
                         FileName = file.FileName,
-                        Content = new byte[0],
+                        ContentType = file.ContentType,
+                        Content = Array.Empty<byte>(),
+                        FolderId = file.FolderId,
                     })
                     .ToList(),
             })
@@ -54,5 +53,17 @@ public class FolderRepository
             .Folders.Where(f => f.UserId == userId)
             .OrderBy(f => f.FolderName)
             .ToListAsync();
+    }
+
+    public async Task UpdateFolderAsync(FolderEntity entity)
+    {
+        _context.Folders.Update(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteFolderAsync(FolderEntity entity)
+    {
+        _context.Folders.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 }

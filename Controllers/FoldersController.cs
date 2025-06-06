@@ -29,40 +29,11 @@ public class FoldersController : ControllerBase
         }
         catch (DuplicateItemException ex)
         {
-            return BadRequest();
+            return BadRequest(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, "An unexpected error occured while creating the folder.");
-        }
-    }
-
-    [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        try
-        {
-            var userId = UserValidation.ValidateUser(
-                User.FindFirstValue(ClaimTypes.NameIdentifier)
-            );
-            var response = await _folderService.GetAllFoldersAsync();
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(ex);
-        }
-        catch (FolderDataNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
         }
     }
 
@@ -77,21 +48,21 @@ public class FoldersController : ControllerBase
             );
             var response = await _folderService.GetFolderAsync(id, userId);
 
-            return Ok(FolderCreateResponse.FromEntity(response));
+            return Ok(FolderSummary.FromEntity(response));
         }
         catch (ValidationException ex)
         {
-            return BadRequest(ex);
+            return BadRequest(ex.Message);
         }
         catch (FolderDataNotFoundException)
         {
             return NotFound();
         }
-        catch (UnauthorizedAccessException)
+        catch (FolderOwnershipException)
         {
             return Forbid();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, "An unexpected error occured while retrieving the folder.");
         }
@@ -99,24 +70,95 @@ public class FoldersController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    [Authorize]
-    [HttpPut("id")]
-    public async Task<IActionResult> Update([FromBody] string folderName, int id)
+    public async Task<IActionResult> GetAll()
     {
-        throw new NotImplementedException();
+        try
+        {
+            var userId = UserValidation.ValidateUser(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
+            var response = await _folderService.GetAllFoldersAsync(userId);
+
+            return Ok(FoldersSummary.FromEntities(response));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (FoldersDataNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (FolderOwnershipException)
+        {
+            return Forbid();
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+        }
     }
 
     [Authorize]
-    [HttpDelete("id")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update([FromBody] FolderUpdateRequest request, int id)
+    {
+        try
+        {
+            var userId = UserValidation.ValidateUser(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
+
+            var response = await _folderService.UpdateFolderAsync(request, id, userId);
+
+            return Ok(FolderUpdateResponse.FromEntity(response));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (FoldersDataNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (FolderOwnershipException)
+        {
+            return Forbid();
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+        }
+    }
+
+    [Authorize]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var response = await _folderService.DeleteFolderAsync(id, userId);
-
-        if (response == null)
+        try
         {
-            return BadRequest("Failed to delete folder.");
-        }
+            var userId = UserValidation.ValidateUser(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
 
-        return Ok("Folder successfully deleted at: " + response);
+            await _folderService.DeleteFolderAsync(id, userId);
+            return NoContent();
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (FoldersDataNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (FolderOwnershipException)
+        {
+            return Forbid();
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+        }
     }
 }

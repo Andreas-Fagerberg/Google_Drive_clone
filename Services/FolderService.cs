@@ -1,11 +1,8 @@
-using System.Data;
-using Google_Drive_clone.Data.Repositories;
-
 public class FolderService : IFolderService
 {
-    private readonly FolderRepository _folderRepository;
+    private readonly IFolderRepository _folderRepository;
 
-    public FolderService(FolderRepository folderRepository)
+    public FolderService(IFolderRepository folderRepository)
     {
         _folderRepository = folderRepository;
     }
@@ -13,6 +10,7 @@ public class FolderService : IFolderService
     public async Task<FolderEntity> CreateFolderAsync(FolderCreateRequest request, string userId)
     {
         ValidateFolderCreateRequest(request);
+
         await CheckForDuplicateFolderAsync(request.FolderName, userId);
 
         FolderEntity folderEntity = new FolderEntity
@@ -26,44 +24,87 @@ public class FolderService : IFolderService
         return response;
     }
 
-    public async Task<FolderEntity> GetFolderAsync(int folderId, string userId)
+    public async Task<FolderEntity> GetFolderAsync(int id, string userId)
     {
-        if (folderId <= 0)
-        {
-            throw new ValidationException("Folder ID must be a positive number");
-        }
+        ValidateFolderId(id);
 
-        var response = await _folderRepository.GetFolderAsync(folderId);
+        var response = await _folderRepository.GetFolderAsync(id);
 
         if (response == null)
         {
-            throw new FolderDataNotFoundException(folderId);
+            throw new FolderDataNotFoundException(id);
         }
 
-        if (response.UserId != userId)
+        ValidateOwnership(response, userId);
+
+        return response;
+    }
+
+    public async Task<List<FolderEntity>> GetAllFoldersAsync(string userId)
+    {
+        var response = await _folderRepository.GetAllUserFoldersAsync(userId);
+
+        if (response == null)
         {
-            throw new UnauthorizedAccessException();
+            throw new FoldersDataNotFoundException(userId);
         }
 
         return response;
     }
 
-    public async Task<FolderEntity> GetAllFoldersAsync(string userId)
+    public async Task<FolderEntity> UpdateFolderAsync(
+        FolderUpdateRequest request,
+        int id,
+        string userId
+    )
     {
-        
+        ValidateFolderId(id);
+
+        var existingFolder = await _folderRepository.GetFolderAsync(id);
+
+        if (existingFolder == null)
+        {
+            throw new FolderDataNotFoundException(id);
+        }
+
+        ValidateOwnership(existingFolder, userId);
+
+        existingFolder.FolderName = request.FolderName;
+
+        await _folderRepository.UpdateFolderAsync(existingFolder);
+
+        return existingFolder;
     }
 
-    public Task<FolderEntity> UpdateFolderAsync(FolderUpdateRequest request, string userId)
+    public async Task DeleteFolderAsync(int id, string userId)
     {
-        throw new NotImplementedException();
-    }
+        ValidateFolderId(id);
+        var existingFolder = await _folderRepository.GetFolderAsync(id);
 
-    public Task DeleteFolderAsync(int id, string userId)
-    {
-        throw new NotImplementedException();
+        if (existingFolder == null)
+        {
+            throw new FolderDataNotFoundException(id);
+        }
+
+        ValidateOwnership(existingFolder, userId);
+
+        await _folderRepository.DeleteFolderAsync(existingFolder);
     }
 
     #region Helper methods
+
+    /// <summary>
+    /// Checks if the given id is a valid positive number.
+    /// </summary>
+    /// <param name="id">The folder id to be validated</param>
+    /// <exception cref="ValidationException">Thrown if id is a non-positiv number</exception>
+    public void ValidateFolderId(int id)
+    {
+        if (id <= 0)
+        {
+            throw new ValidationException("Folder ID must be a positive number");
+        }
+    }
 
     public void ValidateFolderCreateRequest(FolderCreateRequest request)
     {
@@ -78,6 +119,14 @@ public class FolderService : IFolderService
         if (request.FolderName.Length > 100)
         {
             throw new ValidationException("Foldername must be at most 100 characters.");
+        }
+    }
+
+    public static void ValidateOwnership(FolderEntity entity, string userId)
+    {
+        if (!entity.UserId.Equals(userId))
+        {
+            throw new FolderOwnershipException(entity.Id);
         }
     }
 
