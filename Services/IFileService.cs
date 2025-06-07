@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-
 public interface IFileService
 {
-    public Task<FileUploadResponse> UploadFileAsync();
+    public Task<FileEntity> UploadFileAsync(FileUploadRequest request, string userId);
+    public Task<FileEntity> GetFileAsync(int id, string userId);
+    public Task<FileEntity> DeleteFileAsync(int id, string userId);
 }

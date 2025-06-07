@@ -1,9 +1,6 @@
-using Google_Drive_clone.Data.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-
-namespace Google_Drive_clone;
 
 public class Program
 {
@@ -17,11 +14,15 @@ public class Program
         builder.Services.AddAuthorization();
         builder
             .Services.AddIdentityApiEndpoints<IdentityUser>()
-            .AddEntityFrameworkStores<AppDbContext>();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
         builder.Services.AddOpenApi();
-        builder.Services.AddScoped<FolderRepository>();
+        builder.Services.AddScoped<IFolderRepository, FolderRepository>();
         builder.Services.AddScoped<IFolderService, FolderService>();
+        builder.Services.AddScoped<IFileRepository, FileRepository>();
+        builder.Services.AddScoped<IFileService, FileService>();
+        builder.Services.AddScoped<OwnershipValidator>();
         builder.Services.AddControllers();
 
         var app = builder.Build();
