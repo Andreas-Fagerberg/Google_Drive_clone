@@ -17,12 +17,11 @@ public class FoldersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(FolderCreateRequest request)
     {
-        var userId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException();
-
         try
         {
+            var userId = UserValidation.GetRequiredUserId(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
             var response = await _folderService.CreateFolderAsync(request, userId);
 
             return CreatedAtAction(nameof(Get), new { id = response.Id }, response);
@@ -51,7 +50,7 @@ public class FoldersController : ControllerBase
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
             var response = await _folderService.GetFolderAsync(id, userId);
@@ -82,7 +81,7 @@ public class FoldersController : ControllerBase
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
             var response = await _folderService.GetAllUserFoldersAsync(userId);
@@ -113,7 +112,7 @@ public class FoldersController : ControllerBase
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
 
@@ -153,7 +152,7 @@ public class FoldersController : ControllerBase
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
 

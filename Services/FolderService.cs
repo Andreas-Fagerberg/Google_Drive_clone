@@ -1,55 +1,88 @@
+using Microsoft.EntityFrameworkCore;
+
 public class FolderService : IFolderService
 {
     private readonly IFolderRepository _folderRepository;
+    private readonly OwnershipValidator _ownershipValidator;
 
-    public FolderService(IFolderRepository folderRepository)
+    public FolderService(IFolderRepository folderRepository, OwnershipValidator ownershipValidator)
     {
         _folderRepository = folderRepository;
+        _ownershipValidator = ownershipValidator;
     }
 
+    /// <summary>
+    /// Creates a new folder for the specified user.
+    /// </summary>
+    /// <param name="request">The folder creation request.</param>
+    /// <param name="userId">The ID of the user creating the folder.</param>
+    /// <returns>The created <see cref="FolderEntity"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if the request is null.</exception>
+    /// <exception cref="ValidationException">Thrown if the folder name is invalid.</exception>
+    /// <exception cref="DuplicateItemException">Thrown if a folder with the same name already exists.</exception>
     public async Task<FolderEntity> CreateFolderAsync(FolderCreateRequest request, string userId)
     {
         ValidateFolderCreateRequest(request);
 
-        await ValidateUniqueNameAsync(request.FolderName, userId);
-
-        FolderEntity folderEntity = new FolderEntity
+        try
         {
-            FolderName = request.FolderName.Trim(),
-            UserId = userId,
-        };
-
-        var response = await _folderRepository.AddFolderAsync(folderEntity);
-
-        return response;
+            var folder = await _folderRepository.AddFolderAsync(
+                FolderCreateRequest.ToEntity(request, userId)
+            );
+            return folder;
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
+        {
+            throw new DuplicateItemException("A folder with the same name already exists.");
+        }
     }
 
+    /// <summary>
+    /// Retrieves a folder by its ID for the specified user.
+    /// </summary>
+    /// <param name="id">The ID of the folder to retrieve.</param>
+    /// <param name="userId">The ID of the user requesting the folder.</param>
+    /// <returns>The retrieved <see cref="FolderEntity"/>.</returns>
+    /// <exception cref="ValidationException">Thrown if the folder ID is invalid.</exception>
+    /// <exception cref="FolderDataNotFoundException">Thrown if the folder does not exist.</exception>
     public async Task<FolderEntity> GetFolderAsync(int id, string userId)
     {
         ValidateFolderId(id);
 
-        var response = await _folderRepository.GetFolderAsync(id, userId);
+        var folder = await _folderRepository.GetFolderAsync(id, userId);
 
-        if (response == null)
+        if (folder == null)
         {
             throw new FolderDataNotFoundException(id);
         }
 
-        return response;
+        return folder;
     }
 
+    /// <summary>
+    /// Retrieves all folders belonging to a specified user.
+    /// </summary>
+    /// <param name="userId">The ID of the user whose folders are being retrieved.</param>
+    /// <returns>A list of <see cref="FolderEntity"/> representing the user's folders.</returns>
     public async Task<List<FolderEntity>> GetAllUserFoldersAsync(string userId)
     {
-        var response = await _folderRepository.GetAllUserFoldersAsync(userId);
+        var folder = await _folderRepository.GetAllUserFoldersAsync(userId);
 
-        if (response == null)
-        {
-            throw new FoldersDataNotFoundException(userId);
-        }
-
-        return response;
+        return folder;
     }
 
+    /// <summary>
+    /// Updates the name of an existing folder for the specified user.
+    /// </summary>
+    /// <param name="request">The update request containing the new folder name.</param>
+    /// <param name="id">The ID of the folder to update.</param>
+    /// <param name="userId">The ID of the user updating the folder.</param>
+    /// <returns>The updated <see cref="FolderEntity"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if the request is null.</exception>
+    /// <exception cref="ValidationException">Thrown if the folder name is invalid.</exception>
+    /// <exception cref="UnauthorizedAccessException">Thrown if the user does not own the folder.</exception>
+    /// <exception cref="FolderDataNotFoundException">Thrown if the folder does not exist.</exception>
+    /// <exception cref="DuplicateItemException">Thrown if another folder with the same name exists.</exception>
     public async Task<FolderEntity> UpdateFolderAsync(
         FolderUpdateRequest request,
         int id,
@@ -59,33 +92,41 @@ public class FolderService : IFolderService
         ValidateFolderId(id);
         ValidateFolderUpdateRequest(request);
 
-        var existingFolder = await _folderRepository.GetFolderAsync(id, userId);
-
-        if (existingFolder == null)
+        FolderEntity? existingFolder;
+        try
         {
-            throw new FolderDataNotFoundException(id);
-        }
+            await _ownershipValidator.EnsureUserOwnsFolderAsync(id, userId);
+            existingFolder = await _folderRepository.GetFolderAsync(id, userId);
 
-        if (
-            !existingFolder.FolderName.Equals(
-                request.FolderName,
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
+            if (existingFolder == null)
+            {
+                throw new FolderDataNotFoundException(id);
+            }
+
+            existingFolder.FolderName = request.FolderName;
+            await _folderRepository.UpdateFolderAsync(existingFolder);
+
+            return existingFolder;
+        }
+        catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueConstraintViolation(ex))
         {
-            await ValidateUniqueNameAsync(request.FolderName, userId);
+            throw new DuplicateItemException("A folder with the same name already exists.");
         }
-
-        existingFolder.FolderName = request.FolderName;
-
-        await _folderRepository.UpdateFolderAsync(existingFolder);
-
-        return existingFolder;
     }
 
+    /// <summary>
+    /// Deletes a folder by its ID for the specified user.
+    /// </summary>
+    /// <param name="id">The ID of the folder to delete.</param>
+    /// <param name="userId">The ID of the user requesting deletion.</param>
+    /// <exception cref="ValidationException">Thrown if the folder ID is invalid.</exception>
+    /// <exception cref="UnauthorizedAccessException">Thrown if the user does not own the folder.</exception>
+    /// <exception cref="FolderDataNotFoundException">Thrown if the folder does not exist.</exception>
     public async Task DeleteFolderAsync(int id, string userId)
     {
         ValidateFolderId(id);
+
+        await _ownershipValidator.EnsureUserOwnsFolderAsync(id, userId);
 
         var existingFolder = await _folderRepository.GetFolderAsync(id, userId);
 
@@ -137,13 +178,7 @@ public class FolderService : IFolderService
     private void ValidateFolderUpdateRequest(FolderUpdateRequest request)
     {
         if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request), "Request cannot be null.");
-        }
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request), "Request cannot be null.");
-        }
+            throw new ArgumentNullException(nameof(request));
         if (string.IsNullOrWhiteSpace(request.FolderName))
         {
             throw new ValidationException("Foldername cannot be null or whitespace.");
@@ -151,14 +186,6 @@ public class FolderService : IFolderService
         if (request.FolderName.Length > 100)
         {
             throw new ValidationException("Foldername must be at most 100 characters.");
-        }
-    }
-
-    private async Task ValidateUniqueNameAsync(string folderName, string userId)
-    {
-        if (await _folderRepository.FolderExistsAsync(folderName, userId))
-        {
-            throw new DuplicateItemException(folderName);
         }
     }
 

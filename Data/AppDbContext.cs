@@ -17,7 +17,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
         // Folder configs
         modelBuilder
             .Entity<FolderEntity>()
-            .HasIndex(f => new { f.FolderName, f.UserId })
+            .HasIndex(f => new { f.FolderNameNormalized, f.UserId })
             .IsUnique();
 
         modelBuilder
@@ -26,9 +26,24 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .HasMaxLength(100)
             .IsRequired();
 
+        modelBuilder
+            .Entity<FolderEntity>()
+            .Property(f => f.FolderNameNormalized)
+            .HasMaxLength(100)
+            .IsRequired();
+
         // File configs
-        modelBuilder.Entity<FileEntity>().HasIndex(f => new { f.FileName, f.FolderId }).IsUnique();
+        modelBuilder
+            .Entity<FileEntity>()
+            .HasIndex(f => new { f.FileNameNormalized, f.UserId })
+            .IsUnique();
 
         modelBuilder.Entity<FileEntity>().Property(f => f.FileName).HasMaxLength(255).IsRequired();
+
+        modelBuilder
+            .Entity<FileEntity>()
+            .Property(f => f.FileNameNormalized)
+            .HasMaxLength(255)
+            .IsRequired();
     }
 }

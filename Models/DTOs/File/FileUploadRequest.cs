@@ -6,9 +6,13 @@ public class FileUploadRequest
     public required IFormFile File { get; set; }
 
     [Required]
-    public required int FolderId { get; set; }
+    public required string FolderName { get; set; }
 
-    public static async Task<FileEntity> ToEntity(FileUploadRequest request, string userId)
+    public static async Task<FileEntity> ToEntity(
+        FileUploadRequest request,
+        string userId,
+        int folderId
+    )
     {
         var contentType = request.File.ContentType;
 
@@ -22,9 +26,10 @@ public class FileUploadRequest
         return new FileEntity
         {
             FileName = request.File.FileName,
+            FileNameNormalized = request.File.FileName.ToLowerInvariant(),
             Content = fileContent,
             ContentType = contentType,
-            FolderId = request.FolderId,
+            FolderId = folderId,
             UserId = userId,
         };
     }

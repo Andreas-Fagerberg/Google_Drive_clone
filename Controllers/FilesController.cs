@@ -19,12 +19,16 @@ public class FilesController : ControllerBase
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
             var response = await _fileService.UploadFileAsync(request, userId);
 
             return Ok(FileUploadResponse.FromEntity(response));
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
         catch (DuplicateItemException ex)
         {
@@ -42,10 +46,10 @@ public class FilesController : ControllerBase
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
-            var response = await _fileService.GetFileAsync(id);
+            var response = await _fileService.GetFileAsync(id, userId);
 
             return File(
                 fileContents: response.Content,
@@ -57,9 +61,17 @@ public class FilesController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
         catch (FileOwnershipException)
         {
             return Forbid();
+        }
+        catch (FileDataNotFoundException)
+        {
+            return NotFound();
         }
         catch (Exception)
         {
@@ -73,7 +85,7 @@ public class FilesController : ControllerBase
     // {
     //     try
     //     {
-    //         var userId = UserValidation.ValidateUser(
+    //         var userId = UserValidation.GetRequiredUserId(
     //             User.FindFirstValue(ClaimTypes.NameIdentifier)
     //         );
     //         var response = await _fileService.UpdateFileAsync(request);
@@ -96,17 +108,21 @@ public class FilesController : ControllerBase
 
     [Authorize]
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         try
         {
-            var userId = UserValidation.ValidateUser(
+            var userId = UserValidation.GetRequiredUserId(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
 
-            _fileService.DeleteFileAsync(id);
+            await _fileService.DeleteFileAsync(id, userId);
 
             return NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
         catch (Exception)
         {

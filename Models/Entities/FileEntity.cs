@@ -8,6 +8,9 @@ public class FileEntity
     public required string FileName { get; set; }
 
     [Required]
+    public required string FileNameNormalized { get; set; }
+
+    [Required]
     public required byte[] Content { get; set; }
 
     [Required]

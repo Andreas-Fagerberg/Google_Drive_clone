@@ -27,9 +27,14 @@ public class FileRepository : IFileRepository
     //     throw new NotImplementedException();
     // }
 
-    public Task DeleteFileAsync(int id)
+    public async Task DeleteFileAsync(FileEntity entity)
     {
-        throw new NotImplementedException();
+        _context.Files.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 
+    public async Task<bool> IsFileOwnedByUserAsync(int id, string userId)
+    {
+        return await _context.Files.AnyAsync(f => f.Id == id && f.UserId == userId);
+    }
 }

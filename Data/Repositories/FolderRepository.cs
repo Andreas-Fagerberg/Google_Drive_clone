@@ -16,6 +16,31 @@ public class FolderRepository : IFolderRepository
         return entity;
     }
 
+    public async Task<FolderEntity> GetOrCreateFolderAsync(string folderName, string userId)
+    {
+        var normalizedFolderName = folderName.ToLowerInvariant();
+
+        var folder = await _context.Folders.FirstOrDefaultAsync(f =>
+            f.FolderNameNormalized == normalizedFolderName && f.UserId == userId
+        );
+
+        if (folder != null)
+            return folder;
+
+        var newFolder = new FolderEntity
+        {
+            FolderName = folderName,
+            FolderNameNormalized = normalizedFolderName,
+            UserId = userId,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        _context.Folders.Add(newFolder);
+        await _context.SaveChangesAsync();
+
+        return newFolder;
+    }
+
     public async Task<FolderEntity?> GetFolderAsync(int folderId, string userId)
     {
         return await _context
@@ -25,6 +50,7 @@ public class FolderRepository : IFolderRepository
             {
                 Id = folder.Id,
                 FolderName = folder.FolderName,
+                FolderNameNormalized = folder.FolderNameNormalized,
                 CreatedAt = folder.CreatedAt,
                 UserId = folder.UserId,
                 Files = folder
@@ -32,6 +58,7 @@ public class FolderRepository : IFolderRepository
                     {
                         Id = file.Id,
                         FileName = file.FileName,
+                        FileNameNormalized = file.FileNameNormalized,
                         ContentType = file.ContentType,
                         Content = Array.Empty<byte>(),
                         FolderId = file.FolderId,
@@ -52,6 +79,7 @@ public class FolderRepository : IFolderRepository
             {
                 Id = folder.Id,
                 FolderName = folder.FolderName,
+                FolderNameNormalized = folder.FolderNameNormalized,
                 CreatedAt = folder.CreatedAt,
                 UserId = folder.UserId,
                 Files = folder
@@ -59,6 +87,7 @@ public class FolderRepository : IFolderRepository
                     {
                         Id = file.Id,
                         FileName = file.FileName,
+                        FileNameNormalized = file.FileNameNormalized,
                         ContentType = file.ContentType,
                         Content = Array.Empty<byte>(),
                         FolderId = file.FolderId,
@@ -83,10 +112,8 @@ public class FolderRepository : IFolderRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> FolderExistsAsync(string folderName, string userId)
+    public async Task<bool> IsFolderOwnedByUserAsync(int id, string userId)
     {
-        return await _context.Folders.AnyAsync(f =>
-            f.FolderName == folderName && f.UserId == userId
-        );
+        return await _context.Folders.AnyAsync(f => f.Id == id && f.UserId == userId);
     }
 }

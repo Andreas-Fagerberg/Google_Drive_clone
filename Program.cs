@@ -20,6 +20,7 @@ public class Program
         builder.Services.AddOpenApi();
         builder.Services.AddScoped<FolderRepository>();
         builder.Services.AddScoped<IFolderService, FolderService>();
+        builder.Services.AddScoped<OwnershipValidator>();
         builder.Services.AddControllers();
 
         var app = builder.Build();

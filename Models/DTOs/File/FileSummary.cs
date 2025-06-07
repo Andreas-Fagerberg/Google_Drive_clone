@@ -9,7 +9,7 @@ public class FileSummary
         return new FileSummary
         {
             Id = entity.Id,
-            FileName = entity.FileName,
+            FileName = entity.FileNameNormalized,
             ContentType = entity.ContentType,
         };
     }

@@ -1,9 +1,9 @@
 public class UserValidation
 {
-    public static string ValidateUser(string? userId)
+    public static string GetRequiredUserId(string? userId)
     {
         if (userId == null)
-            throw new UnauthorizedAccessException();
+            throw new UnauthorizedAccessException($"User was not found");
 
         return userId;
     }
