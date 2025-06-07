@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 public class FolderEntity
 {
@@ -15,5 +16,6 @@ public class FolderEntity
     public required string UserId { get; set; }
 
     // Navigation props
+    public IdentityUser? User { get; set; }
     public ICollection<FileEntity> Files { get; set; } = new List<FileEntity>();
 }

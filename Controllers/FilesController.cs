@@ -15,7 +15,7 @@ public class FilesController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Upload([FromBody] FileUploadRequest request)
+    public async Task<IActionResult> Upload([FromForm] FileUploadRequest request)
     {
         try
         {
@@ -65,7 +65,7 @@ public class FilesController : ControllerBase
         {
             return Forbid();
         }
-        catch (FileOwnershipException)
+        catch (ItemOwnershipException)
         {
             return Forbid();
         }
@@ -75,7 +75,7 @@ public class FilesController : ControllerBase
         }
         catch (Exception)
         {
-            return StatusCode(500, "An unexpected error occured while retrieving the file");
+            return StatusCode(500, $"An unexpected error occured while retrieving the file");
         }
     }
 

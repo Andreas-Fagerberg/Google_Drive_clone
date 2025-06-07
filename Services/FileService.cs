@@ -30,6 +30,7 @@ public class FileService : IFileService
         if (request == null)
             throw new ArgumentNullException(nameof(request));
 
+
         var folder = await _folderRepository.GetOrCreateFolderAsync(request.FolderName, userId);
 
         var entity = await FileUploadRequest.ToEntity(request, userId, folder.Id);
@@ -58,7 +59,7 @@ public class FileService : IFileService
     public async Task<FileEntity> GetFileAsync(int id, string userId)
     {
         ValidateFileId(id);
-        
+
         await _ownershipValidator.EnsureUserOwnsFileAsync(id, userId);
 
         var file = await _fileRepository.GetFileAsync(id, userId);
@@ -70,11 +71,6 @@ public class FileService : IFileService
 
         return file;
     }
-
-    // public Task<FileEntity> UpdateFileAsync()
-    // {
-    //     throw new NotImplementedException();
-    // }
 
     /// <summary>
     /// Deletes a file by its ID for the specified user.

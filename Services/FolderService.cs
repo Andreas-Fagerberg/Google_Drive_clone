@@ -104,6 +104,7 @@ public class FolderService : IFolderService
             }
 
             existingFolder.FolderName = request.FolderName;
+            existingFolder.FolderNameNormalized = request.FolderName.ToLowerInvariant();
             await _folderRepository.UpdateFolderAsync(existingFolder);
 
             return existingFolder;

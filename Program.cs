@@ -18,8 +18,10 @@ public class Program
             .AddDefaultTokenProviders();
 
         builder.Services.AddOpenApi();
-        builder.Services.AddScoped<FolderRepository>();
+        builder.Services.AddScoped<IFolderRepository, FolderRepository>();
         builder.Services.AddScoped<IFolderService, FolderService>();
+        builder.Services.AddScoped<IFileRepository, FileRepository>();
+        builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddScoped<OwnershipValidator>();
         builder.Services.AddControllers();
 

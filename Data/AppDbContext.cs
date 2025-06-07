@@ -45,5 +45,13 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .Property(f => f.FileNameNormalized)
             .HasMaxLength(255)
             .IsRequired();
+
+        // Configure cascade delete
+        modelBuilder
+            .Entity<FileEntity>()
+            .HasOne(f => f.Folder)
+            .WithMany(folder => folder.Files)
+            .HasForeignKey(f => f.FolderId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 public class FileEntity
 {
@@ -26,4 +27,5 @@ public class FileEntity
 
     // Navigation props
     public FolderEntity? Folder { get; set; }
+    public IdentityUser? User { get; set; }  // Add this line
 }

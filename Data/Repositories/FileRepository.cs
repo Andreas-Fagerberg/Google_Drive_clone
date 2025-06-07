@@ -22,11 +22,6 @@ public class FileRepository : IFileRepository
         return await _context.Files.FirstOrDefaultAsync(f => f.Id == id && f.UserId == userId);
     }
 
-    // public Task<FileEntity> UpdateFileAsync()
-    // {
-    //     throw new NotImplementedException();
-    // }
-
     public async Task DeleteFileAsync(FileEntity entity)
     {
         _context.Files.Remove(entity);
