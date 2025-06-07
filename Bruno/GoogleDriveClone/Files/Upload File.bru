@@ -1,0 +1,16 @@
+meta {
+  name: Upload File
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5115/api/Files
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  FolderName: Test Folder
+  File: @file(Test Files\AAAL test logo.png)
+}

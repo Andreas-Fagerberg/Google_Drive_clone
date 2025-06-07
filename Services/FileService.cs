@@ -30,7 +30,6 @@ public class FileService : IFileService
         if (request == null)
             throw new ArgumentNullException(nameof(request));
 
-
         var folder = await _folderRepository.GetOrCreateFolderAsync(request.FolderName, userId);
 
         var entity = await FileUploadRequest.ToEntity(request, userId, folder.Id);

@@ -27,5 +27,5 @@ public class FileEntity
 
     // Navigation props
     public FolderEntity? Folder { get; set; }
-    public IdentityUser? User { get; set; }  // Add this line
+    public IdentityUser? User { get; set; }
 }
