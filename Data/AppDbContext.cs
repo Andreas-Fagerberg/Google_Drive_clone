@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +14,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     {
         base.OnModelCreating(modelBuilder);
 
+        // Folder configs
         modelBuilder
             .Entity<FolderEntity>()
             .HasIndex(f => new { f.FolderName, f.UserId })
@@ -25,5 +25,10 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .Property(f => f.FolderName)
             .HasMaxLength(100)
             .IsRequired();
+
+        // File configs
+        modelBuilder.Entity<FileEntity>().HasIndex(f => new { f.FileName, f.FolderId }).IsUnique();
+
+        modelBuilder.Entity<FileEntity>().Property(f => f.FileName).HasMaxLength(255).IsRequired();
     }
 }

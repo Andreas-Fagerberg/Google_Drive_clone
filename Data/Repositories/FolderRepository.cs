@@ -16,10 +16,11 @@ public class FolderRepository : IFolderRepository
         return entity;
     }
 
-    public async Task<FolderEntity?> GetFolderAsync(int folderId)
+    public async Task<FolderEntity?> GetFolderAsync(int folderId, string userId)
     {
         return await _context
-            .Folders.Where(folder => folder.Id == folderId)
+            .Folders.Include(folder => folder.Files)
+            .Where(folder => folder.Id == folderId && folder.UserId == userId)
             .Select(folder => new FolderEntity
             {
                 Id = folder.Id,
@@ -34,25 +35,40 @@ public class FolderRepository : IFolderRepository
                         ContentType = file.ContentType,
                         Content = Array.Empty<byte>(),
                         FolderId = file.FolderId,
+                        UserId = file.UserId,
                     })
                     .ToList(),
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<FolderEntity?> GetFolderByNameAsync(string folderName, string userId)
-    {
-        return await _context.Folders.FirstOrDefaultAsync(f =>
-            f.FolderName == folderName && f.UserId == userId
-        );
-    }
-
     public async Task<List<FolderEntity>> GetAllUserFoldersAsync(string userId)
     {
-        return await _context
-            .Folders.Where(f => f.UserId == userId)
-            .OrderBy(f => f.FolderName)
+        var folders = await _context
+            .Folders.Include(f => f.Files)
+            .Where(folder => folder.UserId == userId)
+            .OrderBy(folder => folder.FolderName)
+            .Select(folder => new FolderEntity
+            {
+                Id = folder.Id,
+                FolderName = folder.FolderName,
+                CreatedAt = folder.CreatedAt,
+                UserId = folder.UserId,
+                Files = folder
+                    .Files.Select(file => new FileEntity
+                    {
+                        Id = file.Id,
+                        FileName = file.FileName,
+                        ContentType = file.ContentType,
+                        Content = Array.Empty<byte>(),
+                        FolderId = file.FolderId,
+                        UserId = file.UserId,
+                    })
+                    .ToList(),
+            })
             .ToListAsync();
+
+        return folders ?? new List<FolderEntity>();
     }
 
     public async Task UpdateFolderAsync(FolderEntity entity)
@@ -65,5 +81,12 @@ public class FolderRepository : IFolderRepository
     {
         _context.Folders.Remove(entity);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> FolderExistsAsync(string folderName, string userId)
+    {
+        return await _context.Folders.AnyAsync(f =>
+            f.FolderName == folderName && f.UserId == userId
+        );
     }
 }

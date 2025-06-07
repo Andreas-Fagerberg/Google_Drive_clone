@@ -31,14 +31,22 @@ public class FoldersController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         catch (Exception)
         {
-            return StatusCode(500, "An unexpected error occured while creating the folder.");
+            return StatusCode(500, "An unexpected error occurred while creating the folder.");
         }
     }
 
     [Authorize]
-    [HttpGet("id")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
         try
@@ -77,7 +85,7 @@ public class FoldersController : ControllerBase
             var userId = UserValidation.ValidateUser(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)
             );
-            var response = await _folderService.GetAllFoldersAsync(userId);
+            var response = await _folderService.GetAllUserFoldersAsync(userId);
 
             return Ok(FoldersSummary.FromEntities(response));
         }
@@ -95,7 +103,7 @@ public class FoldersController : ControllerBase
         }
         catch (Exception)
         {
-            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+            return StatusCode(500, "An unexpected error occured while retrieving the folders.");
         }
     }
 
@@ -117,6 +125,14 @@ public class FoldersController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (DuplicateItemException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         catch (FoldersDataNotFoundException)
         {
             return NotFound();
@@ -127,7 +143,7 @@ public class FoldersController : ControllerBase
         }
         catch (Exception)
         {
-            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+            return StatusCode(500, "An unexpected error occurred while updating the folder.");
         }
     }
 
@@ -158,7 +174,7 @@ public class FoldersController : ControllerBase
         }
         catch (Exception)
         {
-            return StatusCode(500, "An unexpected error occured while retrieving the folder.");
+            return StatusCode(500, "An unexpected error occured while deleting the folder.");
         }
     }
 }

@@ -1,8 +1,7 @@
 public interface IFileRepository
 {
-    public Task<FileEntity> CreateFileAsync(FileEntity fileEntity);
-    public Task<FileEntity> GetFileAsync(int fileId);
-    public Task<List<FileEntity>> GetAllFilesAsync();
+    public Task<FileEntity> UploadFileAsync(FileEntity entity);
+    public Task<FileEntity?> GetFileAsync(int id, string userId);
     public Task<FileEntity> UpdateFileAsync();
-    public Task DeleteFileAsync();
+    public Task DeleteFileAsync(int id, string userId);
 }

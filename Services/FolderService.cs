@@ -11,11 +11,11 @@ public class FolderService : IFolderService
     {
         ValidateFolderCreateRequest(request);
 
-        await CheckForDuplicateFolderAsync(request.FolderName, userId);
+        await ValidateUniqueNameAsync(request.FolderName, userId);
 
         FolderEntity folderEntity = new FolderEntity
         {
-            FolderName = request.FolderName,
+            FolderName = request.FolderName.Trim(),
             UserId = userId,
         };
 
@@ -28,19 +28,17 @@ public class FolderService : IFolderService
     {
         ValidateFolderId(id);
 
-        var response = await _folderRepository.GetFolderAsync(id);
+        var response = await _folderRepository.GetFolderAsync(id, userId);
 
         if (response == null)
         {
             throw new FolderDataNotFoundException(id);
         }
 
-        ValidateOwnership(response, userId);
-
         return response;
     }
 
-    public async Task<List<FolderEntity>> GetAllFoldersAsync(string userId)
+    public async Task<List<FolderEntity>> GetAllUserFoldersAsync(string userId)
     {
         var response = await _folderRepository.GetAllUserFoldersAsync(userId);
 
@@ -59,15 +57,24 @@ public class FolderService : IFolderService
     )
     {
         ValidateFolderId(id);
+        ValidateFolderUpdateRequest(request);
 
-        var existingFolder = await _folderRepository.GetFolderAsync(id);
+        var existingFolder = await _folderRepository.GetFolderAsync(id, userId);
 
         if (existingFolder == null)
         {
             throw new FolderDataNotFoundException(id);
         }
 
-        ValidateOwnership(existingFolder, userId);
+        if (
+            !existingFolder.FolderName.Equals(
+                request.FolderName,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        {
+            await ValidateUniqueNameAsync(request.FolderName, userId);
+        }
 
         existingFolder.FolderName = request.FolderName;
 
@@ -79,14 +86,13 @@ public class FolderService : IFolderService
     public async Task DeleteFolderAsync(int id, string userId)
     {
         ValidateFolderId(id);
-        var existingFolder = await _folderRepository.GetFolderAsync(id);
+
+        var existingFolder = await _folderRepository.GetFolderAsync(id, userId);
 
         if (existingFolder == null)
         {
             throw new FolderDataNotFoundException(id);
         }
-
-        ValidateOwnership(existingFolder, userId);
 
         await _folderRepository.DeleteFolderAsync(existingFolder);
     }
@@ -98,7 +104,7 @@ public class FolderService : IFolderService
     /// </summary>
     /// <param name="id">The folder id to be validated</param>
     /// <exception cref="ValidationException">Thrown if id is a non-positiv number</exception>
-    public void ValidateFolderId(int id)
+    private void ValidateFolderId(int id)
     {
         if (id <= 0)
         {
@@ -106,7 +112,7 @@ public class FolderService : IFolderService
         }
     }
 
-    public void ValidateFolderCreateRequest(FolderCreateRequest request)
+    private void ValidateFolderCreateRequest(FolderCreateRequest request)
     {
         if (request == null)
         {
@@ -122,26 +128,35 @@ public class FolderService : IFolderService
         }
     }
 
-    public static void ValidateOwnership(FolderEntity entity, string userId)
+    /// <summary>
+    /// Validates the folder update request.
+    /// </summary>
+    /// <param name="request">The folder update request to validate</param>
+    /// <exception cref="ArgumentNullException">Thrown if request is null</exception>
+    /// <exception cref="ValidationException">Thrown if folder name is invalid</exception>
+    private void ValidateFolderUpdateRequest(FolderUpdateRequest request)
     {
-        if (!entity.UserId.Equals(userId))
+        if (request == null)
         {
-            throw new FolderOwnershipException(entity.Id);
+            throw new ArgumentNullException(nameof(request), "Request cannot be null.");
+        }
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request), "Request cannot be null.");
+        }
+        if (string.IsNullOrWhiteSpace(request.FolderName))
+        {
+            throw new ValidationException("Foldername cannot be null or whitespace.");
+        }
+        if (request.FolderName.Length > 100)
+        {
+            throw new ValidationException("Foldername must be at most 100 characters.");
         }
     }
 
-    /// <summary>
-    /// Checks if a duplicate folder already exists with the given folder name and user id.
-    /// </summary>
-    /// <param name="folderName">The folder name to check for</param>
-    /// <param name="userId">The id of the user to check for</param>
-    /// <returns></returns>
-    /// <exception cref="DuplicateItemException">Thrown if a duplicate folder is found</exception>
-    public async Task CheckForDuplicateFolderAsync(string folderName, string userId)
+    private async Task ValidateUniqueNameAsync(string folderName, string userId)
     {
-        var existingFolder = await _folderRepository.GetFolderByNameAsync(folderName, userId);
-
-        if (existingFolder != null)
+        if (await _folderRepository.FolderExistsAsync(folderName, userId))
         {
             throw new DuplicateItemException(folderName);
         }

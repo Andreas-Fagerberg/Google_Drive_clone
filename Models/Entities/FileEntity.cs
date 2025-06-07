@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 
-
-
 public class FileEntity
 {
     public int Id { get; set; }
@@ -10,14 +8,18 @@ public class FileEntity
     public required string FileName { get; set; }
 
     [Required]
-    public required string ContentType { get; set; }
+    public required byte[] Content { get; set; }
 
     [Required]
-    public required byte[] Content { get; set; } = new byte[0];
-    public DateTime UploadedAt { get; set; }
+    public required string ContentType { get; set; }
+
+    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
     [Required]
     public required int FolderId { get; set; }
+
+    [Required]
+    public required string UserId { get; set; }
 
     // Navigation props
     public FolderEntity? Folder { get; set; }
